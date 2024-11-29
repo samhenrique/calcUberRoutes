@@ -1,12 +1,20 @@
 import express from 'express';
 import h3 from 'h3-js';
 import { spawn } from 'child_process';
+import cors from "cors"; 
+
+const corsOptions = {
+  origin: "*", // Permite todas as origens; modifique conforme necessário para segurança
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  allowedHeaders: "Content-Type,Authorization",
+};
+
 
 const app = express();
 app.use(express.json());
 const list = []
 
-
+app.use(cors(corsOptions));
 
 app.get('/', (req, res) => {
     res.send(list);
@@ -23,7 +31,7 @@ app.post('/', (req, res) => {
     const destination = h3.latLngToCell(latDest, lngDest, 9);
     console.log(origin, destination);
     const pythonArgs = ["predict.py", origin, destination];
-    const pythonProcess = spawn('python', pythonArgs);
+    const pythonProcess = spawn('.venv/bin/python', pythonArgs);
 
     let pythonOutput = '';
     pythonProcess.stdout.on('data', (data) => {
