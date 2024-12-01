@@ -79,10 +79,9 @@ app.post('/', async (req, res) => {
 
 async function connectToActiveMQ() {
   try {
-    'amqps://admin:Th1234567890@b-515e6f12-ea9f-46bb-9263-330132968f52-1.mq.us-east-2.amazonaws.com:5671'
     const connection = await amqplib.connect({
       protocol: 'amqps',
-      hostname: 'b-515e6f12-ea9f-46bb-9263-330132968f52-1.mq.us-east-2.amazonaws.com',
+      hostname: 'b-d9e5ca0b-bbda-44c3-9654-0bbae23c2331.mq.us-east-2.amazonaws.com',
       port: 5671,
       username: 'admin',
       password: 'Th1234567890',
