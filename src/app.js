@@ -49,15 +49,6 @@ AWS.config.update({
 
 const sns = new AWS.SNS();
 
-app.get('/', (req, res) => {
-  res.send(list);
-});
-
-app.post('/insert', (req, res) => {
-  list.push(req.body);
-  res.status(201).send(req.body + ' inserido com sucesso!');
-});
-
 app.get('/retrain-model', (req, res) => {
   const pythonArgs = ["./src/scripts/train_model.py"];
   const pythonProcess = spawn('.venv/Scripts/python', pythonArgs);
@@ -84,7 +75,7 @@ app.get('/retrain-model', (req, res) => {
 });
 
 app.post('/', async (req, res) => {
-  const { latOrigin, lngOrigin, latDest, lngDest} = req.body;
+  const { latOrigin, lngOrigin, latDest, lngDest } = req.body;
   const origin = h3.latLngToCell(latOrigin, lngOrigin, 15);
   const destination = h3.latLngToCell(latDest, lngDest, 15);
   console.log(origin, destination);
