@@ -1,11 +1,14 @@
 import { PrismaClient } from '@prisma/client';
 import amqplib from 'amqplib';
+import AWS from 'aws-sdk';
 import { spawn } from 'child_process';
 import cors from "cors";
-import express from 'express';
-import h3 from 'h3-js';
-import AWS from 'aws-sdk';
 import dotenv from 'dotenv';
+import express from 'express';
+import fs from 'fs';
+import h3 from 'h3-js';
+import path, { dirname } from 'path';
+import { fileURLToPath } from 'url';
 
 dotenv.config();
 
@@ -13,6 +16,8 @@ const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
 const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
 const topicArn = process.env.TOPIC_ARN;
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const corsOptions = {
   origin: "*", // Permite todas as origens; modifique conforme necessário para segurança
@@ -33,7 +38,6 @@ const prisma = new PrismaClient({
 app.use(cors(corsOptions));
 
 AWS.config.update({
-    
     accessKeyId,
     secretAccessKey,
     region: 'sa-east-1', 
@@ -60,7 +64,7 @@ app.get('/retrain-model', (req, res) => {
     }
     const params = {
         Message: 'Modelo retreinado com sucesso!',
-        TopicArn,
+        TopicArn: topicArn,
       };
       
       sns.publish(params, (err, data) => {
@@ -120,7 +124,7 @@ async function connectToActiveMQ() {
   try {
     const connection = await amqplib.connect({
       protocol: 'amqps',
-      hostname: 'b-d9e5ca0b-bbda-44c3-9654-0bbae23c2331.mq.us-east-2.amazonaws.com',
+      hostname: 'b-e64f5f54-2a30-4cf7-92b6-29c28e830607.mq.sa-east-1.amazonaws.com',
       port: 5671,
       username: 'admin',
       password: 'Th1234567890',
@@ -129,12 +133,27 @@ async function connectToActiveMQ() {
     const channel = await connection.createChannel();
 
     await channel.assertQueue('data', { durable: true });
+    await channel.prefetch(10); 
 
     console.log('Connected to ActiveMQ on queue "data"');
 
-    channel.consume('data', async (message) => {
-      console.log('Received message:', message.content.toString());
-    }, { noAck: true });
+    const messages = [];
+
+    await channel.consume('data', async (message) => {
+      const content = message.content.toString();
+      console.log('Received message:', content);
+      messages.push(content);
+      channel.ack(message);
+    }, { noAck: false });
+
+
+    const csv = messages.join('\n');
+
+    fs.mkdirSync(path.join(__dirname, 'tmp'), { recursive: true });
+    const filePath = path.join(__dirname, 'tmp', 'cleaned_2.csv');
+    fs.writeFileSync(filePath, csv);
+
+    console.log('CSV file saved:', filePath);
   } catch (error) {
     console.error('Error connecting to ActiveMQ:', error);
   }
