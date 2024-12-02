@@ -136,14 +136,14 @@ async function connectToActiveMQ() {
     });
     const channel = await connection.createChannel();
 
-    await channel.assertQueue('data', { durable: true });
+    await channel.assertQueue(queueUrl, { durable: true });
     await channel.prefetch(10); 
 
     console.log('Connected to ActiveMQ on queue "data"');
 
     const messages = [];
 
-    await channel.consume('data', async (message) => {
+    await channel.consume(queueUrl, async (message) => {
       const content = message.content.toString();
       console.log('Received message:', content);
       messages.push(content);
