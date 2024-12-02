@@ -14,7 +14,7 @@ import joblib
 #     "dropoff_latitude": [40.777743, 40.75718, 40.719967, 40.743818, 40.750787, 40.770281, 40.71378, 40.745134, 40.715692, 40.77622, 40.720365, 40.76961],
 #     "passenger_count": [5, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 6]
 # })
-data = pd.read_csv("cleaned_2.csv", sep=";")
+data = pd.read_csv("tmp/cleaned_2.csv", sep=";")
 
 # Substituir vírgulas por pontos e converter para float
 data['fare_amount'] = data['fare_amount'].str.replace(',', '.').astype(float)
@@ -42,7 +42,7 @@ if data.isnull().any().any():
 print(data.head())
 
 # 2. Converter coordenadas em identificadores H3
-resolution = 9  # Resolução do H3 (ajustável)
+resolution = 15  # Resolução do H3 (ajustável)
 data['pickup_h3'] = data.apply(
     lambda row: h3.latlng_to_cell(row['pickup_latitude'], row['pickup_longitude'], resolution), axis=1
 )

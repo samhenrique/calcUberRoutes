@@ -4,6 +4,7 @@ import { spawn } from 'child_process';
 import cors from "cors";
 import express from 'express';
 import h3 from 'h3-js';
+import AWS from 'aws-sdk';
 
 const corsOptions = {
   origin: "*", // Permite todas as origens; modifique conforme necessário para segurança
@@ -23,6 +24,14 @@ const prisma = new PrismaClient({
 
 app.use(cors(corsOptions));
 
+AWS.config.update({
+    accessKeyId: 'AKIA4OIWP2UL4GLG7JGG', 
+    secretAccessKey: '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', 
+    region: 'sa-east-1', 
+  });
+
+const sns = new AWS.SNS();
+
 app.get('/', (req, res) => {
   res.send(list);
 });
@@ -32,14 +41,35 @@ app.post('/insert', (req, res) => {
   res.status(201).send(req.body + ' inserido com sucesso!');
 });
 
-app.post('/retrain-model', (req, res) => {
-  res.send('Not implemented yet');
+app.get('/retrain-model', (req, res) => {
+  const pythonArgs = ["./src/scripts/train_model.py"];
+  const pythonProcess = spawn('.venv/Scripts/python', pythonArgs);
+
+  pythonProcess.on('close', async (code) => {
+    if (code !== 0) {
+      return res.status(500).send({ error: 'Erro ao executar o script Python.' });
+    }
+    const params = {
+        Message: 'Modelo retreinado com sucesso!',
+        TopicArn: 'arn:aws:sns:sa-east-1:855282537751:calcUberNotification',
+      };
+      
+      sns.publish(params, (err, data) => {
+        if (err) {
+          console.error('Erro ao enviar mensagem:', err);
+        } else {
+          console.log('Mensagem enviada com sucesso:', data);
+        }
+      });
+      
+    res.status(200).send('Modelo retreinado com sucesso!');
+  });
 });
 
 app.post('/', async (req, res) => {
   const { latOrigin, lngOrigin, latDest, lngDest} = req.body;
-  const origin = h3.latLngToCell(latOrigin, lngOrigin, 9);
-  const destination = h3.latLngToCell(latDest, lngDest, 9);
+  const origin = h3.latLngToCell(latOrigin, lngOrigin, 15);
+  const destination = h3.latLngToCell(latDest, lngDest, 15);
   console.log(origin, destination);
   const pythonArgs = ["./src/scripts/predict.py", origin, destination];
   const pythonProcess = spawn('.venv/Scripts/python', pythonArgs);
