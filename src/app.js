@@ -15,6 +15,10 @@ dotenv.config();
 const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
 const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
 const topicArn = process.env.TOPIC_ARN;
+const queueUrl = process.env.QUEUE_URL;
+const rabbitmqUrl = process.env.RABBITMQ_URL;
+const rabbitmqUser = process.env.RABBITMQ_USER;
+const rabbitmqPassword = process.env.RABBITMQ_PASSWORD;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -124,10 +128,10 @@ async function connectToActiveMQ() {
   try {
     const connection = await amqplib.connect({
       protocol: 'amqps',
-      hostname: 'b-e64f5f54-2a30-4cf7-92b6-29c28e830607.mq.sa-east-1.amazonaws.com',
+      hostname: rabbitmqUrl,
       port: 5671,
-      username: 'admin',
-      password: 'Th1234567890',
+      username: rabbitmqUser,
+      password: rabbitmqPassword,
       frameMax: 4194304,
     });
     const channel = await connection.createChannel();
