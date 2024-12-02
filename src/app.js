@@ -125,7 +125,7 @@ async function connectToActiveMQ() {
 
     channel.consume('data', async (message) => {
       console.log('Received message:', message.content.toString());
-    }, { noAck: false });
+    }, { noAck: true });
   } catch (error) {
     console.error('Error connecting to ActiveMQ:', error);
   }
