@@ -5,6 +5,14 @@ import cors from "cors";
 import express from 'express';
 import h3 from 'h3-js';
 import AWS from 'aws-sdk';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
+const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
+const topicArn = process.env.TOPIC_ARN;
+
 
 const corsOptions = {
   origin: "*", // Permite todas as origens; modifique conforme necessário para segurança
@@ -25,8 +33,9 @@ const prisma = new PrismaClient({
 app.use(cors(corsOptions));
 
 AWS.config.update({
-    accessKeyId: 'AKIA4OIWP2UL4GLG7JGG', 
-    secretAccessKey: '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', 
+    
+    accessKeyId,
+    secretAccessKey,
     region: 'sa-east-1', 
   });
 
@@ -51,7 +60,7 @@ app.get('/retrain-model', (req, res) => {
     }
     const params = {
         Message: 'Modelo retreinado com sucesso!',
-        TopicArn: 'arn:aws:sns:sa-east-1:855282537751:calcUberNotification',
+        TopicArn,
       };
       
       sns.publish(params, (err, data) => {
